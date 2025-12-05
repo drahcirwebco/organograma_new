@@ -113,9 +113,20 @@ async function addColaborador(colaborador) {
     
     console.log('➕ Adicionando colaborador:', colaborador);
     
+    // Mapear para as colunas EXATAS do banco (minúsculas)
+    const dataToInsert = {
+      'nome': colaborador.Colaborador || colaborador.nome || '',
+      'cargo': colaborador.Cargo || colaborador.cargo || '',
+      'area': colaborador['Área'] || colaborador.area || colaborador.Departamento || '',
+      'gestor': colaborador.Gestor || colaborador.gestor || '',
+      'regimeContratacao': colaborador.regimeContratacao || ''
+    };
+    
+    console.log('💾 Dados a inserir:', dataToInsert);
+    
     const { data, error } = await supabase
       .from(SUPABASE_TABLE)
-      .insert([colaborador])
+      .insert([dataToInsert])
       .select();
     
     if (error) {
@@ -123,7 +134,7 @@ async function addColaborador(colaborador) {
       throw error;
     }
     
-    console.log('✅ Colaborador adicionado:', data);
+    console.log('✅ Colaborador adicionado com sucesso:', data);
     return data;
   } catch (error) {
     console.error('❌ Erro em addColaborador:', error.message);

@@ -185,27 +185,41 @@ function setupAddColaboradorModal() {
 
     addForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('📝 Formulário de adicionar colaborador acionado');
+        
         const nome = document.getElementById('colaborador-nome').value.trim();
         const cargo = document.getElementById('colaborador-cargo').value.trim();
         const departamento = selectDepartamento.value; // mantém o id mas semântica é "Área"
         const gestor = selectGestor.value;
-        if (!nome || !cargo || !departamento || !gestor) {
+        const regime = document.getElementById('colaborador-regime').value;
+        
+        console.log('📋 Valores do formulário:', { nome, cargo, departamento, gestor, regime });
+        
+        if (!nome || !cargo || !departamento || !gestor || !regime) {
             alert('Preencha todos os campos.');
             return;
         }
     // Persistir somente o campo 'Área' (legado 'Departamento' removido).
-    const novo = { Colaborador: nome, Cargo: cargo, 'Área': departamento, Gestor: gestor };
+    const novo = { Colaborador: nome, Cargo: cargo, 'Área': departamento, Gestor: gestor, regimeContratacao: regime };
+    console.log('💾 Objeto a salvar:', novo);
+    
         try {
             // Tentar adicionar no Supabase
             const addColaboradorFn = window.addColaborador;
+            console.log('🔍 Função addColaborador disponível?', !!addColaboradorFn);
+            
             if (addColaboradorFn) {
                 try {
+                    console.log('⏳ Enviando para Supabase...');
                     const resultado = await addColaboradorFn(novo);
                     console.log('✅ Colaborador adicionado ao Supabase:', resultado);
-                    novo.id = resultado?.id;
+                    novo.id = resultado?.[0]?.id;
                 } catch (err) {
-                    console.warn('⚠️ Erro ao adicionar ao Supabase (continuando com local):', err);
+                    console.error('❌ Erro ao adicionar ao Supabase:', err.message, err);
+                    throw err;
                 }
+            } else {
+                console.warn('⚠️ Função addColaborador não encontrada');
             }
             
             // Atualiza array local
@@ -1062,13 +1076,14 @@ function renderPresidenciaView() {
         // Criar apenas 1 card de vaga aberta (mesmo que haja múltiplas vagas)
         const vagaCard = document.createElement('div');
         vagaCard.style.cssText = `
-            background: linear-gradient(135deg, #eff6ff, #dbeafe);
-            border: 3px solid #3b82f6;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
             border-radius: 12px;
             padding: 15px;
             text-align: center;
+            cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -1077,7 +1092,6 @@ function renderPresidenciaView() {
             flex: 1;
             min-width: 180px;
             max-width: 200px;
-            cursor: pointer;
         `;
         
         const vagaTitulo = document.createElement('h3');
@@ -1085,7 +1099,6 @@ function renderPresidenciaView() {
         vagaTitulo.style.cssText = `
             font-size: 14px;
             font-weight: 700;
-            color: #1e40af;
             margin: 0 0 6px 0;
             line-height: 1.2;
         `;
@@ -1094,9 +1107,9 @@ function renderPresidenciaView() {
         vagaCargo.textContent = 'DIRETOR DE TECNOLOGIA E INOVAÇÃO';
         vagaCargo.style.cssText = `
             font-size: 11px;
-            color: #3730a3;
             font-weight: 600;
             margin: 0 0 4px 0;
+            opacity: 0.9;
             line-height: 1.3;
         `;
         
@@ -1104,14 +1117,9 @@ function renderPresidenciaView() {
         vagaDept.textContent = 'Diretoria de TI';
         vagaDept.style.cssText = `
             font-size: 9px;
-            color: #6366f1;
-            font-weight: 500;
+            opacity: 0.8;
             margin: 0;
             line-height: 1.2;
-            padding: 3px 8px;
-            background: rgba(99, 102, 241, 0.1);
-            border-radius: 6px;
-            margin-top: 4px;
         `;
         
         vagaCard.appendChild(vagaTitulo);
@@ -1121,12 +1129,12 @@ function renderPresidenciaView() {
         // Adicionar eventos de hover (como um diretor real)
         vagaCard.addEventListener('mouseenter', () => {
             vagaCard.style.transform = 'translateY(-3px)';
-            vagaCard.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.35)';
+            vagaCard.style.boxShadow = '0 8px 25px rgba(59, 130, 246, 0.4)';
         });
         
         vagaCard.addEventListener('mouseleave', () => {
             vagaCard.style.transform = 'translateY(0)';
-            vagaCard.style.boxShadow = '0 4px 15px rgba(59, 130, 246, 0.25)';
+            vagaCard.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.3)';
         });
         
         // Criar um objeto fake para a vaga que possa ser navegado como um diretor
