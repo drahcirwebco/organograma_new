@@ -1,93 +1,120 @@
 // js/login.js
 
-// Importa as funções necessárias do Firebase SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
+// Importar Supabase
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm';
 
-// SUAS CREDENCIAIS DO FIREBASE (AS MESMAS DO SEU OUTRO SCRIPT)
-const firebaseConfig = {
-apiKey: "AIzaSyD76HOZNa8yWSVmeJtrkxFmdxtsvlt2arY",
-  authDomain: "organograma-empresa.firebaseapp.com",
-  projectId: "organograma-empresa",
-  storageBucket: "organograma-empresa.firebasestorage.app",
-  messagingSenderId: "256795992111",
-  appId: "1:256795992111:web:6d8cb3e8e3ea5ae316a6da"
-};
+// Credenciais do Supabase
+const SUPABASE_URL = 'https://pyinmcinjcyelavkuhfl.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5aW5tY2luamN5ZWxhdmt1aGZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2ODA0NDIsImV4cCI6MjA2MzI1NjQ0Mn0.5UbxNTluLWoy56tBLL6tAAZZwLMj17uUDR8_nd9IMWA';
 
-// Inicializa o Firebase e o serviço de Autenticação
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+let supabase = null;
 
-// --- Elementos do DOM ---
+try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+    console.log('✅ Supabase inicializado com sucesso');
+} catch (e) {
+    console.error('❌ Erro ao inicializar Supabase:', e);
+}
+
+// Elementos do DOM
 const loginForm = document.getElementById('login-form');
 const emailInput = document.getElementById('email');
 const passwordInput = document.getElementById('password');
 const loginError = document.getElementById('login-error');
 
-// --- Listener para o envio do formulário ---
-loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Previne o recarregamento da página
-
-    const email = emailInput.value;
-    const password = passwordInput.value;
-
-    try {
-        // Garante que a sessão seja persistida no armazenamento local
-        await setPersistence(auth, browserLocalPersistence);
-        // Tenta fazer o login com a função do Firebase
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log('[LOGIN] signIn OK para', userCredential.user.email);
-        // Força obtenção de token para garantir que a sessão esteja válida antes de redirecionar
-        try {
-            const t = await userCredential.user.getIdToken(true);
-            console.log('[LOGIN] Token obtido (tamanho):', t ? t.length : 0);
-        } catch (tokErr) {
-            console.warn('[LOGIN] Falha ao obter token imediatamente, seguindo mesmo assim.', tokErr);
+if (!loginForm) {
+    console.error('❌ Formulário de login não encontrado!');
+} else {
+    console.log('✅ Formulário de login encontrado');
+    
+    // Listener para o formulário
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('📝 Formulário enviado');
+        
+        const email = emailInput.value.trim();
+        const password = passwordInput.value;
+        
+        if (!email || !password) {
+            showError('Por favor, preencha email e senha.');
+            return;
         }
         
-        // Salvar dados do usuário no localStorage
-        const user = {
-            email: userCredential.user.email,
-            uid: userCredential.user.uid,
+        await handleLogin(email, password);
+    });
+}
+
+async function handleLogin(email, password) {
+    console.log('🔐 Tentando fazer login com:', email);
+    
+    if (!supabase) {
+        showError('Erro ao conectar com o banco de dados. Tente novamente.');
+        return;
+    }
+    
+    try {
+        console.log('🔍 Buscando usuário na tabela organograma_acessos...');
+        
+        const { data, error } = await supabase
+            .from('organograma_acessos')
+            .select('id, email, nome, ativo, senha')
+            .eq('email', email);
+        
+        console.log('Resultado da busca:', { data, error });
+        
+        if (error) {
+            console.error('❌ Erro ao buscar usuário:', error);
+            showError('Erro ao conectar. Tente novamente.');
+            return;
+        }
+        
+        if (!data || data.length === 0) {
+            console.warn('⚠️ Usuário não encontrado');
+            showError('E-mail ou senha incorretos.');
+            return;
+        }
+        
+        const user = data[0];
+        console.log('✅ Usuário encontrado:', user.email);
+        
+        // Validar senha
+        if (user.senha !== password) {
+            console.warn('⚠️ Senha incorreta');
+            showError('E-mail ou senha incorretos.');
+            return;
+        }
+        
+        console.log('✅ Senha correta! Login bem-sucedido');
+        
+        // Salvar dados do usuário
+        const userData = {
+            id: user.id,
+            email: user.email,
+            nome: user.nome,
             loginTime: new Date().toISOString()
         };
-    localStorage.setItem('user', JSON.stringify(user));
-    // Marca que acabou de logar (grace period na página principal)
-    sessionStorage.setItem('justLoggedAt', String(Date.now()));
         
-        // Se o login for bem-sucedido, redireciona para a página do organograma
-        window.location.href = 'index.html';
-
+        localStorage.setItem('user', JSON.stringify(userData));
+        sessionStorage.setItem('justLoggedAt', String(Date.now()));
+        
+        console.log('💾 Dados salvos no localStorage');
+        console.log('🔄 Redirecionando para index.html...');
+        
+        // Redirecionar
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 500);
+        
     } catch (error) {
-        // Se der erro, mostra uma mensagem amigável
-        console.error('[LOGIN] Erro:', error.code, error.message);
-        let msg = 'Não foi possível entrar.';
-        switch (error.code) {
-            case 'auth/invalid-email':
-                msg = 'E-mail inválido.'; break;
-            case 'auth/user-disabled':
-                msg = 'Usuário desativado.'; break;
-            case 'auth/user-not-found':
-            case 'auth/wrong-password':
-            case 'auth/invalid-credential':
-                msg = 'E-mail ou senha incorretos.'; break;
-            case 'auth/too-many-requests':
-                msg = 'Muitas tentativas. Tente novamente mais tarde.'; break;
-            case 'auth/network-request-failed':
-                msg = 'Falha de rede. Verifique sua conexão.'; break;
-            case 'auth/operation-not-allowed':
-                msg = 'Método de login desabilitado no projeto.'; break;
-            case 'auth/unauthorized-domain':
-                msg = 'Domínio não autorizado no Firebase Auth (adicione "localhost" em Domínios autorizados).'; break;
-            default:
-                msg = `Erro de login (${error.code || 'desconhecido'}).`;
-        }
-        showError(msg);
+        console.error('❌ Erro inesperado:', error);
+        showError('Erro ao conectar. Tente novamente.');
     }
-});
+}
 
-// --- Função para mostrar erros ---
 function showError(message) {
-    loginError.textContent = message;
-    loginError.classList.remove('hidden');
+    console.warn('[LOGIN ERROR]', message);
+    if (loginError) {
+        loginError.textContent = message;
+        loginError.classList.remove('hidden');
+    }
 }

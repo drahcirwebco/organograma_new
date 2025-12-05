@@ -51,7 +51,7 @@ function buildDocId(nome) {
 // Função para obter regime do colaborador
 function getRegime(col) {
     if (!col) return '';
-    return (col.Regime || col.regime || '').trim();
+    return (col.regimeContratacao || col.Regime || col.regime || '').trim();
 }
 
 // Função para filtrar colaboradores pelo regime selecionado
@@ -175,6 +175,37 @@ function setupAddColaboradorModal() {
 
     if (!addModal || !addForm || !btnAddColaborador) return;
 
+    // Elementos de novo setor
+    const checkboxNovoSetor = document.getElementById('checkbox-novo-setor');
+    const divNovoSetor = document.getElementById('div-novo-setor');
+    const inputNovoSetor = document.getElementById('input-novo-setor');
+
+    // Mostrar/esconder input de novo setor e resetar dropdown
+    if (checkboxNovoSetor) {
+        checkboxNovoSetor.addEventListener('change', function() {
+            if (this.checked) {
+                divNovoSetor.style.display = 'block';
+                selectDepartamento.value = ''; // Resetar dropdown
+                selectDepartamento.removeAttribute('required');
+                inputNovoSetor.focus();
+            } else {
+                divNovoSetor.style.display = 'none';
+                selectDepartamento.setAttribute('required', 'required');
+                inputNovoSetor.value = '';
+            }
+        });
+        
+        // Desmarcar checkbox quando mexer no dropdown
+        selectDepartamento.addEventListener('change', function() {
+            if (this.value !== '') {
+                checkboxNovoSetor.checked = false;
+                divNovoSetor.style.display = 'none';
+                inputNovoSetor.value = '';
+                selectDepartamento.setAttribute('required', 'required');
+            }
+        });
+    }
+
     btnAddColaborador.addEventListener('click', () => {
         populateDepartamentos();
         populateGestores();
@@ -189,20 +220,46 @@ function setupAddColaboradorModal() {
         
         const nome = document.getElementById('colaborador-nome').value.trim();
         const cargo = document.getElementById('colaborador-cargo').value.trim();
-        const departamento = selectDepartamento.value; // mantém o id mas semântica é "Área"
+        const departamento = selectDepartamento.value;
         const gestor = selectGestor.value;
         const regime = document.getElementById('colaborador-regime').value;
         
-        console.log('📋 Valores do formulário:', { nome, cargo, departamento, gestor, regime });
+        // Verificar novo setor
+        const isNovoSetor = checkboxNovoSetor.checked;
+        const novoSetorNome = inputNovoSetor.value.trim();
         
-        if (!nome || !cargo || !departamento || !gestor || !regime) {
-            alert('Preencha todos os campos.');
+        console.log('📋 Valores do formulário:', { nome, cargo, departamento, gestor, regime });
+        console.log('🔍 Novo setor marcado?', isNovoSetor);
+        console.log('📝 Nome do novo setor:', novoSetorNome);
+        
+        if (!nome || !cargo || !gestor || !regime) {
+            alert('Preencha todos os campos obrigatórios.');
             return;
         }
-    // Persistir somente o campo 'Área' (legado 'Departamento' removido).
-    const novo = { Colaborador: nome, Cargo: cargo, 'Área': departamento, Gestor: gestor, regimeContratacao: regime };
-    console.log('💾 Objeto a salvar:', novo);
-    
+        
+        if (!departamento && !isNovoSetor) {
+            alert('Selecione uma Área ou marque "Novo setor".');
+            return;
+        }
+        
+        if (isNovoSetor && !novoSetorNome) {
+            alert('Digite o nome do novo setor.');
+            return;
+        }
+        
+        // Se é novo setor, usar o nome digitado; caso contrário, usar o selecionado
+        const areaFinal = isNovoSetor ? novoSetorNome : departamento;
+        
+        // Objeto para salvar no banco de dados
+        const novo = { 
+            Colaborador: nome, 
+            Cargo: cargo, 
+            'Área': areaFinal, 
+            Gestor: gestor, 
+            regimeContratacao: regime 
+        };
+        console.log('💾 Objeto a salvar:', novo);
+        
         try {
             // Tentar adicionar no Supabase
             const addColaboradorFn = window.addColaborador;
@@ -224,6 +281,20 @@ function setupAddColaboradorModal() {
             
             // Atualiza array local
             colaboradoresData.push(novo);
+            
+            // Se foi novo setor, adicionar à lista de setores
+            if (isNovoSetor && novoSetorNome) {
+                console.log('➕ Adicionando novo setor à lista:', novoSetorNome);
+                adicionarSetorALista(novoSetorNome);
+            }
+            
+            // Limpar formulário
+            addForm.reset();
+            checkboxNovoSetor.checked = false;
+            divNovoSetor.style.display = 'none';
+            inputNovoSetor.value = '';
+            selectDepartamento.setAttribute('required', 'required');
+            
             closeAddModal();
             
             // Re-renderiza a view atual
@@ -1326,6 +1397,12 @@ function renderSubordinadosView(pessoa, nivelAtual) {
     const container = document.getElementById('chart-container');
     if (!container) return;
     
+    // Limpar conteúdo anterior
+    container.innerHTML = '';
+    
+    // Adicionar breadcrumb com botão de voltar
+    addBreadcrumb(container);
+    
     // Aplicar filtro de regime
     const colaboradoresFiltrados = filterColaboradoresByRegime(colaboradoresData, currentRegimeFilter);
     
@@ -2214,6 +2291,23 @@ function exportToXLSX() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Inicializando aplicação com Supabase...');
     
+    // Verificar se o usuário está logado
+    const user = localStorage.getItem('user');
+    if (!user) {
+        console.warn('⚠️ Usuário não autenticado. Redirecionando para login...');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        const userData = JSON.parse(user);
+        console.log('✅ Usuário autenticado:', userData.email);
+    } catch (e) {
+        console.error('❌ Erro ao processar dados de usuário. Redirecionando para login...');
+        window.location.href = 'login.html';
+        return;
+    }
+    
     // Configurar UI
     setupAddColaboradorModal();
     setupEditColaboradorModal();
@@ -2238,11 +2332,52 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Recarregar a view atual com o novo filtro
             if (currentHierarchyLevel === 'presidencia') {
                 renderPresidenciaView();
-            } else if (currentHierarchyLevel === 'subordinados' && currentSelectedPerson) {
-                renderSubordinadosView(currentSelectedPerson, 'subordinados');
+            } else if (currentSelectedPerson) {
+                renderSubordinadosView(currentSelectedPerson, currentHierarchyLevel);
             }
         });
     }
     
     console.log('✅ Aplicação inicializada com sucesso!');
 });
+
+// ================== FUNÇÃO PARA ADICIONAR NOVO SETOR À LISTA ==================
+function adicionarSetorALista(novoSetor) {
+    const selectDepartamento = document.getElementById('colaborador-departamento');
+    
+    if (!selectDepartamento) {
+        console.warn('⚠️ Select de departamento não encontrado');
+        return;
+    }
+    
+    // Verificar se o setor já existe
+    const setorJaExiste = Array.from(selectDepartamento.options).some(option => 
+        option.value.toLowerCase() === novoSetor.toLowerCase()
+    );
+    
+    if (!setorJaExiste) {
+        // Criar nova opção
+        const novaOpcao = document.createElement('option');
+        novaOpcao.value = novoSetor;
+        novaOpcao.textContent = novoSetor;
+        
+        // Adicionar à lista (mantendo ordem alfabética)
+        let adicionado = false;
+        for (let i = 1; i < selectDepartamento.options.length; i++) {
+            if (novoSetor.localeCompare(selectDepartamento.options[i].value) < 0) {
+                selectDepartamento.insertBefore(novaOpcao, selectDepartamento.options[i]);
+                adicionado = true;
+                break;
+            }
+        }
+        
+        // Se não foi adicionado (é o maior alfabeticamente), adicionar no final
+        if (!adicionado) {
+            selectDepartamento.appendChild(novaOpcao);
+        }
+        
+        console.log('✅ Novo setor adicionado à lista:', novoSetor);
+    } else {
+        console.log('ℹ️ Setor já existe na lista:', novoSetor);
+    }
+}
