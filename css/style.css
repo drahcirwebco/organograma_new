@@ -1188,6 +1188,14 @@ main {
 
 .checkbox-group {
     margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+}
+
+.form-group.checkbox-group label {
+    display: flex !important;
+    margin-bottom: 0 !important;
+    width: auto;
 }
 
 .checkbox-label {
@@ -1202,6 +1210,7 @@ main {
     letter-spacing: 0.05em;
     margin-bottom: 0;
     transition: all var(--transition-normal);
+    width: auto;
 }
 
 .checkbox-input {
@@ -1246,6 +1255,11 @@ main {
 
 .checkbox-text {
     user-select: none;
+    font-size: 0.90rem;
+    color: rgb(125, 130, 133);
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 400;
 }
 
 /* ==================== BOTÕES DE AÇÃO ==================== */
