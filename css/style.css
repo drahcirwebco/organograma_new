@@ -17,6 +17,16 @@
     margin: 0 auto;
 }
 
+/* Centralizar TODOS os divs que contenham cards */
+div[style*="display: flex"],
+.row, .level, .hierarchyRow,
+.subordinados-container,
+.directos-container {
+    justify-content: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
 .horizontal-level::-webkit-scrollbar {
     height: 8px;
 }
@@ -600,7 +610,7 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center; /* Centralizar todos os filhos */
+    align-items: center;
     overflow-x: auto;
     overflow-y: auto;
     border: 1px solid rgba(148, 163, 184, 0.08);
@@ -2036,232 +2046,6 @@ html body .todos-view-container .google-visualization-orgchart-table td {
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-.colaboradores-section {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 15px;
-    padding: 20px;
-    background: rgba(248, 250, 252, 0.5);
-    border-radius: 8px;
-    border: 1px solid rgba(148, 163, 184, 0.1);
-    min-height: 120px;
-}
-
-.colaborador-card {
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-}
-
-.colaborador-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s;
-}
-
-.colaborador-card:hover::before {
-    left: 100%;
-}
-
-.gestor-card {
-    min-width: 200px;
-    max-width: 250px;
-    padding: 15px;
-    background: linear-gradient(135deg, #eff6ff, #dbeafe);
-    border: 2px solid #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
-    border-radius: 10px;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    position: relative;
-}
-
-.gestor-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
-    border-color: #1e40af;
-}
-
-.colaborador-card:not(.gestor-card) {
-    min-width: 150px;
-    max-width: 180px;
-    padding: 12px 8px;
-    background: linear-gradient(135deg, #ffffff, #f8fafc);
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.colaborador-card:not(.gestor-card):hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-color: #3b82f6;
-}
-
-.nome-colaborador {
-    font-weight: 600;
-    font-size: 12px;
-    color: #1e293b;
-    margin-bottom: 6px;
-    line-height: 1.2;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-.gestor-card .nome-colaborador {
-    font-weight: 700;
-    font-size: 14px;
-    color: #1e40af;
-}
-
-.cargo-colaborador {
-    font-size: 10px;
-    color: #64748b;
-    font-weight: 500;
-    line-height: 1.3;
-    margin-bottom: 4px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-.gestor-card .cargo-colaborador {
-    font-size: 12px;
-    color: #3730a3;
-    font-weight: 600;
-}
-
-.departamento-colaborador {
-    font-size: 9px;
-    color: #94a3b8;
-    font-weight: 500;
-    line-height: 1.2;
-    padding: 2px 6px;
-    background: rgba(148, 163, 184, 0.1);
-    border-radius: 4px;
-    margin-top: 4px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-}
-
-.gestor-card .departamento-colaborador {
-    font-size: 10px;
-    color: #6366f1;
-    background: rgba(99, 102, 241, 0.1);
-}
-
-/* Linha conectora entre gestor e colaboradores */
-.hierarchical-view > div:nth-child(2) {
-    width: 2px;
-    height: 30px;
-    background: linear-gradient(180deg, #3b82f6, #1e40af);
-    margin: 0 auto;
-    border-radius: 1px;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-}
-
-/* Responsividade para a visualização hierárquica */
-@media (max-width: 768px) {
-    .hierarchical-view {
-        padding: 15px;
-        gap: 15px;
-    }
-    
-    .gestor-section {
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-    
-    .colaboradores-section {
-        padding: 15px;
-        gap: 10px;
-    }
-    
-    .gestor-card {
-        min-width: 180px;
-        max-width: 220px;
-        padding: 12px;
-    }
-    
-    .colaborador-card:not(.gestor-card) {
-        min-width: 130px;
-        max-width: 160px;
-        padding: 10px 6px;
-    }
-    
-    .nome-colaborador {
-        font-size: 11px;
-    }
-    
-    .gestor-card .nome-colaborador {
-        font-size: 13px;
-    }
-    
-    .cargo-colaborador {
-        font-size: 9px;
-    }
-    
-    .gestor-card .cargo-colaborador {
-        font-size: 11px;
-    }
-}
-
-@media (max-width: 480px) {
-    .hierarchical-view {
-        padding: 10px;
-        gap: 10px;
-    }
-    
-    .gestor-section {
-        padding: 10px;
-        margin-bottom: 15px;
-    }
-    
-    .colaboradores-section {
-        padding: 10px;
-        gap: 8px;
-    }
-    
-    .gestor-card {
-        min-width: 160px;
-        max-width: 200px;
-        padding: 10px;
-    }
-    
-    .colaborador-card:not(.gestor-card) {
-        min-width: 120px;
-        max-width: 140px;
-        padding: 8px 4px;
-    }
-    
-    .nome-colaborador {
-        font-size: 10px;
-    }
-    
-    .gestor-card .nome-colaborador {
-        font-size: 12px;
-    }
-    
-    .cargo-colaborador {
-        font-size: 8px;
-    }
-    
-    .gestor-card .cargo-colaborador {
-        font-size: 10px;
-    }
-}
-
 /* ==================== ESTILOS PARA DIFERENTES NÍVEIS HIERÁRQUICOS ==================== */
 
 /* Seção de Gerentes */
@@ -2609,6 +2393,65 @@ html body .todos-view-container .google-visualization-orgchart-table td {
         font-size: 11px;
     }
 }
+/* ============ ESTILOS PARA COLABORADORES ============ */
+
+/* Seção de Colaboradores - Layout em grid responsivo para centralizar incomplete rows */
+.colaboradores-section {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 20px;
+    background: rgba(248, 250, 252, 0.5);
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    min-height: 120px;
+}
+
+/* Força centralização para cards de colaboradores */
+.colaboradores-section .colaborador-card {
+    margin: 0 auto;
+}
+
+/* Card de Colaborador - Estilo base */
+.colaborador-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    min-width: 150px;
+    max-width: 180px;
+    padding: 12px 8px;
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.colaborador-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.colaborador-card:hover::before {
+    left: 100%;
+}
+
+.colaborador-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: #3b82f6;
+}
+
 /* ============ MELHORIAS ESPECÍFICAS PARA COORDENADORES ============ */
 
 /* Otimização adicional para coordenadores - garante melhor distribuição horizontal */

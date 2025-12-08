@@ -1580,16 +1580,47 @@ function renderGrupoSubordinados(container, subordinados, tipo, gestor) {
         // Layout horizontal contínuo (mantido)
         subordinadosContainer.className = `${isGerente ? 'gerentes-section' : 'coordenadores-section'} horizontal-level`;
         subordinadosContainer.setAttribute('data-count', subordinados.length.toString());
-    } else if (tipo === 'colaborador') {
+    } else if (tipo === 'diretor') {
+        // Layout para diretores: centered grid
+        const count = subordinados.length;
+        if (count === 1) {
+            subordinadosContainer.style.cssText = `
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 24px;
+                padding: 20px 0;
+                justify-items: center;
+                max-width: 400px;
+                margin: 0 auto;
+            `;
+        } else {
+            subordinadosContainer.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 24px;
+                padding: 20px 0;
+                justify-items: center;
+                justify-content: center;
+                max-width: 1200px;
+                margin: 0 auto;
+            `;
+        }
+    } else if (tipo === 'coordenador') {
+        // Coordenadores que têm gerentes acima (não estão em horizontal)
+        const count = subordinados.length;
         subordinadosContainer.style.cssText = `
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
             padding: 20px 0;
             justify-items: center;
             justify-content: center;
-            max-width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
         `;
+    } else if (tipo === 'colaborador') {
+        // Colaboradores - usar apenas classe CSS sem estilos inline
+        subordinadosContainer.className = 'colaboradores-section';
     } else if (tipo === 'supervisor') {
         subordinadosContainer.style.cssText = `
             display: grid;
@@ -1597,6 +1628,7 @@ function renderGrupoSubordinados(container, subordinados, tipo, gestor) {
             gap: 20px;
             padding: 20px 0;
             justify-items: center;
+            justify-content: center;
             max-width: 800px;
             margin: 0 auto;
         `;
