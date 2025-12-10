@@ -368,6 +368,7 @@ function setupEditColaboradorModal() {
         e.preventDefault();
         
         const originalName = document.getElementById('edit-colaborador-original-name').value;
+        const originalGestorField = document.getElementById('edit-colaborador-original-gestor').value;
         const nome = document.getElementById('edit-colaborador-nome').value.trim();
         const area = document.getElementById('edit-colaborador-area').value;
         const cargo = document.getElementById('edit-colaborador-cargo').value;
@@ -377,29 +378,34 @@ function setupEditColaboradorModal() {
             return;
         }
 
-        // Encontrar o gestor baseado na área selecionada
-        const gestor = findGestorByArea(area);
-        
-        const dadosAtualizados = { 
-            Colaborador: nome, 
-            Cargo: cargo, 
-            'Área': area, 
-            Gestor: gestor || 'Roger Ricardo Bueno Pinto' // fallback para presidente
-        };
-
         try {
-            // Tentar atualizar no Supabase
-            const atualizarColaborador = window.updateColaborador;
             const originalColaborador = colaboradoresData.find(col => 
                 getNome(col).toLowerCase() === originalName.toLowerCase()
             );
             
+            // Verificar qual gestor usar
+            let gestorFinal = originalGestorField;
+            
+            // Se o campo está vazio, usar o gestor do colaborador
+            if (!gestorFinal || gestorFinal.trim() === '') {
+                gestorFinal = getGestor(originalColaborador);
+            }
+            
+            const dadosAtualizados = { 
+                Colaborador: nome, 
+                Cargo: cargo, 
+                'Área': area, 
+                Gestor: gestorFinal
+            };
+
+            // Tentar atualizar no Supabase
+            const atualizarColaborador = window.updateColaborador;
+            
             if (atualizarColaborador && originalColaborador?.id) {
                 try {
                     await atualizarColaborador(originalColaborador.id, dadosAtualizados);
-                    console.log('✅ Colaborador atualizado no Supabase');
                 } catch (err) {
-                    console.warn('⚠️ Erro ao atualizar no Supabase (continuando com local):', err);
+                    console.warn('Erro ao atualizar no Supabase (continuando com local):', err);
                 }
             }
 
@@ -407,8 +413,9 @@ function setupEditColaboradorModal() {
             const index = colaboradoresData.findIndex(col => 
                 getNome(col).toLowerCase() === originalName.toLowerCase()
             );
+            
             if (index !== -1) {
-                colaboradoresData[index] = { ...dadosAtualizados, id: originalColaborador?.id };
+                colaboradoresData[index] = { ...colaboradoresData[index], ...dadosAtualizados };
             }
 
             // Atualizar gestores de subordinados se o nome mudou
@@ -423,22 +430,40 @@ function setupEditColaboradorModal() {
                 const subordinados = colaboradoresData.filter(col => 
                     getGestor(col).toLowerCase() === nome.toLowerCase()
                 );
+                
                 for (const sub of subordinados) {
                     if (sub.id) {
                         try {
-                            await window.updateColaborador(sub.id, sub);
+                            const updateData = { 
+                                Colaborador: getNome(sub),
+                                Cargo: getCargo(sub),
+                                'Área': getArea(sub),
+                                Gestor: nome
+                            };
+                            await window.updateColaborador(sub.id, updateData);
                         } catch (err) {
-                            console.warn('⚠️ Erro ao atualizar subordinado no Supabase:', err);
+                            console.warn('Erro ao atualizar subordinado no Supabase:', err);
                         }
                     }
                 }
             }
 
             closeEditModal();
+            
             // Re-renderizar a view atual
             if (!currentSelectedPerson) {
                 renderPresidenciaView();
             } else {
+                // Atualizar a referência da pessoa atual com os novos dados
+                const pessoaAtualizada = colaboradoresData.find(col => 
+                    getNome(col).toLowerCase() === nome.toLowerCase()
+                );
+                console.log('🔍 Pessoa atualizada:', pessoaAtualizada);
+                
+                if (pessoaAtualizada) {
+                    currentSelectedPerson = pessoaAtualizada;
+                }
+                console.log('🎨 Renderizando hierarchy level');
                 renderHierarchyLevel(currentSelectedPerson, currentHierarchyLevel);
             }
             
@@ -470,11 +495,8 @@ function testEditModal(colaborador) {
 
 // Nova função de editar sem caracteres especiais
 function editColaboradorModal(colaborador) {
-    console.log('Nova funcao de editar executada');
-    
     // Buscar o modal
     const modal = document.getElementById('edit-colaborador-modal');
-    console.log('Modal encontrado:', !!modal);
     
     if (!modal) {
         alert('Erro: Modal nao encontrado!');
@@ -483,24 +505,19 @@ function editColaboradorModal(colaborador) {
     
     // Buscar campos do formulario
     const originalNameField = document.getElementById('edit-colaborador-original-name');
+    const originalGestorField = document.getElementById('edit-colaborador-original-gestor');
     const nomeField = document.getElementById('edit-colaborador-nome');
     const areaField = document.getElementById('edit-colaborador-area');
     const cargoField = document.getElementById('edit-colaborador-cargo');
     
-    console.log('Campos encontrados:', { 
-        originalNameField: !!originalNameField, 
-        nomeField: !!nomeField, 
-        areaField: !!areaField, 
-        cargoField: !!cargoField 
-    });
-    
-    if (!originalNameField || !nomeField || !areaField || !cargoField) {
+    if (!originalNameField || !nomeField || !areaField || !cargoField || !originalGestorField) {
         alert('Erro: Campos do formulario nao encontrados!');
         return;
     }
     
     // Preencher campos
     originalNameField.value = getNome(colaborador);
+    originalGestorField.value = getGestor(colaborador); // Armazenar gestor original!
     nomeField.value = getNome(colaborador);
     
     // Popular selects
@@ -781,19 +798,35 @@ function populateEditCargos() {
 
 function findGestorByArea(area) {
     // Encontra o gestor responsável pela área
+    // A lógica é: o gestor é o diretor/gerente/coordenador que gerencia essa área
+    
     const gestoresNaArea = colaboradoresData.filter(c => {
         const areaCol = getArea(c);
         const cargoLower = getCargo(c).toLowerCase();
-        return areaCol === area && (
-            cargoLower.includes('diretor') || 
-            cargoLower.includes('gerente') || 
-            cargoLower.includes('coordenador') ||
-            cargoLower.includes('head')
-        );
+        
+        // Procurar por gestores cuja área contém ou é exatamente a área procurada
+        const isGestor = cargoLower.includes('diretor') || 
+                        cargoLower.includes('gerente') || 
+                        cargoLower.includes('coordenador') ||
+                        cargoLower.includes('head') ||
+                        cargoLower.includes('manager');
+        
+        // Verificar se a área do gestor corresponde
+        return isGestor && (areaCol === area || areaCol.toLowerCase().includes(area.toLowerCase()));
     });
     
-    // Retorna o primeiro gestor encontrado na área, ou o presidente como fallback
-    return gestoresNaArea.length > 0 ? getNome(gestoresNaArea[0]) : 'Roger Ricardo Bueno Pinto';
+    // Se encontrou gestores na área, retornar o primeiro (provavelmente mais alto na hierarquia)
+    if (gestoresNaArea.length > 0) {
+        // Preferir diretores sobre gerentes/coordenadores
+        const diretor = gestoresNaArea.find(g => getCargo(g).toLowerCase().includes('diretor'));
+        if (diretor) return getNome(diretor);
+        
+        return getNome(gestoresNaArea[0]);
+    }
+    
+    // Fallback: retornar presidente
+    console.warn(`⚠️ Nenhum gestor encontrado para a área "${area}". Usando presidente como fallback.`);
+    return 'Roger Ricardo Bueno Pinto';
 }
 
 function populateNewManagerSelect(excludeName) {

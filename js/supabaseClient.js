@@ -149,23 +149,43 @@ async function updateColaborador(id, updates) {
       supabase = await initSupabase();
     }
     
-    console.log('✏️ Atualizando colaborador:', { id, updates });
+    // Construir objeto de atualização com campos do banco
+    const dataToUpdate = {};
+    
+    if (updates.Colaborador !== undefined || updates.nome !== undefined) {
+      dataToUpdate.nome = updates.Colaborador || updates.nome;
+    }
+    if (updates.Cargo !== undefined || updates.cargo !== undefined) {
+      dataToUpdate.cargo = updates.Cargo || updates.cargo;
+    }
+    if (updates['Área'] !== undefined || updates.area !== undefined) {
+      dataToUpdate.area = updates['Área'] || updates.area;
+    }
+    if (updates.Gestor !== undefined || updates.gestor !== undefined) {
+      dataToUpdate.gestor = updates.Gestor || updates.gestor;
+    }
+    if (updates.regimeContratacao !== undefined) {
+      dataToUpdate.regimeContratacao = updates.regimeContratacao;
+    }
+    
+    if (Object.keys(dataToUpdate).length === 0) {
+      return null;
+    }
     
     const { data, error } = await supabase
       .from(SUPABASE_TABLE)
-      .update(updates)
+      .update(dataToUpdate)
       .eq('id', id)
       .select();
     
     if (error) {
-      console.error('❌ Erro ao atualizar:', error);
+      console.error('Erro ao atualizar colaborador:', error);
       throw error;
     }
     
-    console.log('✅ Colaborador atualizado:', data);
     return data;
   } catch (error) {
-    console.error('❌ Erro em updateColaborador:', error.message);
+    console.error('Erro ao atualizar colaborador:', error);
     throw error;
   }
 }
