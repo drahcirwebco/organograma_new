@@ -2,10 +2,7 @@
 
 // Importar Supabase
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm';
-
-// Credenciais do Supabase
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
+import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
 
 let supabase = null;
 

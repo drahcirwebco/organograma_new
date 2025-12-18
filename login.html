@@ -239,6 +239,16 @@
         </form>
     </main>
 
+    <!-- Injetar variáveis de ambiente -->
+    <script>
+        // Para Vercel: as variáveis vêm do processo do servidor
+        // Para desenvolvimento local: use localStorage.setItem('VITE_SUPABASE_URL', '...')
+        window.__ENV__ = {
+            VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || undefined,
+            VITE_SUPABASE_KEY: process.env.VITE_SUPABASE_KEY || undefined
+        };
+    </script>
+
     <!-- Script de Login -->
     <script type="module" src="js/login.js"></script>
 
