@@ -1,22 +1,18 @@
 // config.js - Carrega as variáveis de ambiente
 
-// Tentar carregar do window (para quando injetado pelo servidor)
-// Ou do localStorage (para desenvolvimento local)
-// Ou das variáveis de ambiente do build
-
 const getEnvVariable = (name) => {
-  // Primeiro tenta window (Vercel injeta aqui)
+  // Primeiro tenta localStorage (para desenvolvimento local)
+  if (typeof localStorage !== 'undefined') {
+    const value = localStorage.getItem(name);
+    if (value && value !== 'undefined') return value;
+  }
+  
+  // Depois tenta window.__ENV__ (para quando injetado pelo servidor/Vercel)
   if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[name]) {
     return window.__ENV__[name];
   }
   
-  // Depois tenta localStorage (para desenvolvimento local)
-  if (typeof localStorage !== 'undefined') {
-    const value = localStorage.getItem(name);
-    if (value) return value;
-  }
-  
-  return undefined;
+  return null;
 };
 
 export const SUPABASE_URL = getEnvVariable('VITE_SUPABASE_URL');
@@ -24,7 +20,13 @@ export const SUPABASE_KEY = getEnvVariable('VITE_SUPABASE_KEY');
 
 // Validar se as variáveis estão definidas
 if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('❌ Variáveis de ambiente não configuradas!');
-  console.error('SUPABASE_URL:', SUPABASE_URL ? '✓' : '✗');
-  console.error('SUPABASE_KEY:', SUPABASE_KEY ? '✓' : '✗');
+  console.error('❌ ERRO: Variáveis de ambiente não configuradas!');
+  console.error('VITE_SUPABASE_URL:', SUPABASE_URL ? '✓' : '✗ NÃO ENCONTRADA');
+  console.error('VITE_SUPABASE_KEY:', SUPABASE_KEY ? '✓' : '✗ NÃO ENCONTRADA');
+  console.error('\n📝 Para usar LOCALMENTE, abra o Console (F12) e execute:');
+  console.error("  localStorage.setItem('VITE_SUPABASE_URL', 'https://seu-projeto.supabase.co')");
+  console.error("  localStorage.setItem('VITE_SUPABASE_KEY', 'sua-chave-aqui')");
+  console.error('  window.location.reload()');
+} else {
+  console.log('✅ Variáveis de ambiente carregadas com sucesso!');
 }
