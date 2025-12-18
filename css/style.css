@@ -12,6 +12,16 @@
     scrollbar-color: #cbd5e1 #f1f5f9;
 }
 
+/* Centralizar quando há apenas 1 item */
+.horizontal-level[data-count="1"] {
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.horizontal-level[data-count="1"] > * {
+    margin: 0 auto !important;
+}
+
 /* Força centralização para todos os elementos filhos */
 .horizontal-level > * {
     margin: 0 auto;
