@@ -1,6 +1,7 @@
 // ========== CONFIGURAÇÃO DO SUPABASE ==========
-const SUPABASE_URL = 'https://pyinmcinjcyelavkuhfl.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5aW5tY2luamN5ZWxhdmt1aGZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2ODA0NDIsImV4cCI6MjA2MzI1NjQ0Mn0.5UbxNTluLWoy56tBLL6tAAZZwLMj17uUDR8_nd9IMWA';
+// Importar configurações
+import { SUPABASE_URL, SUPABASE_KEY } from './config.js';
+
 const SUPABASE_TABLE = 'tabela_organograma';
 
 let supabase = null;
@@ -12,9 +13,16 @@ async function initSupabase() {
     console.log('📦 URL:', SUPABASE_URL);
     console.log('📦 Tabela:', SUPABASE_TABLE);
     
-    const { createClient } = window.supabase;
+    // Validar credenciais
+    if (!SUPABASE_URL || !SUPABASE_KEY) {
+      throw new Error('❌ Credenciais do Supabase não configuradas. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_KEY');
+    }
     
-    supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    // Importar createClient dinamicamente
+    const supabaseModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/+esm');
+    const { createClient } = supabaseModule;
+    
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -247,9 +255,23 @@ async function fetchColaboradoresByGestor(gestorId) {
   }
 }
 
-// Exportar para window (acessível globalmente)
+// Exportar como módulo ES6
+export { 
+  initSupabase, 
+  fetchColaboradores, 
+  addColaborador, 
+  updateColaborador, 
+  deleteColaborador,
+  fetchColaboradoresByGestor
+};
+
+// Também exportar para window (acessível globalmente para compatibilidade)
 window.initSupabase = initSupabase;
 window.fetchColaboradores = fetchColaboradores;
+window.addColaborador = addColaborador;
+window.updateColaborador = updateColaborador;
+window.deleteColaborador = deleteColaborador;
+window.fetchColaboradoresByGestor = fetchColaboradoresByGestor;
 window.addColaborador = addColaborador;
 window.updateColaborador = updateColaborador;
 window.deleteColaborador = deleteColaborador;

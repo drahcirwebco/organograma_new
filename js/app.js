@@ -1,5 +1,11 @@
-// Supabase imports - já vem do supabaseClient.js
-// As funções fetchColaboradores, addColaborador, etc. estão disponíveis globalmente
+// Importar funções do supabaseClient
+import { 
+    initSupabase, 
+    fetchColaboradores, 
+    addColaborador, 
+    updateColaborador, 
+    deleteColaborador 
+} from './supabaseClient.js';
 
 // Variáveis globais
 let colaboradoresData = [];

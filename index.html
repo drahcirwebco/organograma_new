@@ -50,14 +50,11 @@
     <!-- SheetJS para exportação XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Supabase Client CDN (CARREGA PRIMEIRO!) -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Nosso wrapper do Supabase (usa window.supabase do CDN acima) -->
-    <script src="js/supabaseClient.js"></script>
-    
-    <!-- Nosso Script Principal -->
-    <script type="module" src="js/app.js"></script>
+    <!-- Scripts módulo (importa config, supabaseClient e app) -->
+    <script type="module">
+        import './js/supabaseClient.js';
+        import './js/app.js';
+    </script>
     <div id="delete-confirmation-modal" class="modal-overlay hidden">
         <div class="modal-content delete-confirmation">
             <div class="confirmation-icon">
