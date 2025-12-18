@@ -1610,8 +1610,18 @@ function renderGrupoSubordinados(container, subordinados, tipo, gestor) {
         // Gerentes / Coordenadores em layout responsivo quebrando linhas equilibradas
         const count = subordinados.length;
         let template = 'repeat(auto-fit, minmax(250px, 1fr))';
+        
+        // Caso especial para 1 item (centralizar)
+        if (count === 1) {
+            subordinadosContainer.style.cssText = `
+                display: flex;
+                justify-content: center;
+                gap: 24px;
+                padding: 24px 10px 30px 10px;
+            `;
+        }
         // Ajuste específico para 5 itens: 2 + 3 linhas centralizadas
-        if (count === 5) {
+        else if (count === 5) {
             // Usar grid com 3 colunas e centralizar primeira linha (2 itens)
             template = 'repeat(3, 1fr)';
             subordinadosContainer.style.cssText = `
