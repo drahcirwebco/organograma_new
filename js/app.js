@@ -84,6 +84,25 @@ function clearNavigationState() {
     sessionStorage.removeItem('navigationState');
 }
 
+// ----------------- HELPER PARA FOTOS -----------------
+function getFotoUrl(col) {
+    if (!col) {
+        // Placeholder padrão
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%234A90E2" width="80" height="80"/%3E%3Ctext fill="%23fff" font-size="32" font-family="Arial" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E?%3C/text%3E%3C/svg%3E';
+    }
+    
+    const fotoUrl = col.foto_url || col.fotoUrl || col.foto || null;
+    
+    if (fotoUrl) {
+        return fotoUrl;
+    }
+    
+    // Gerar placeholder com inicial do nome
+    const nome = getNome(col);
+    const inicial = nome ? nome.charAt(0).toUpperCase() : '?';
+    return `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%234A90E2" width="80" height="80"/%3E%3Ctext fill="%23fff" font-size="32" font-family="Arial" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3E${inicial}%3C/text%3E%3C/svg%3E`;
+}
+
 // ----------------- HELPERS DE NORMALIZAÇÃO -----------------
 function getNome(col) {
     if (!col) return '';
@@ -140,6 +159,7 @@ function filterColaboradoresByRegime(colaboradores, regime) {
     });
 }
 
+// Função para obter URL da foto ou placeholder
 // ====== INICIALIZAÇÃO SUPABASE ======
 async function initSupabaseConnection() {
     try {
@@ -208,6 +228,7 @@ async function loadSupabaseData() {
             telefone: item.Telefone || item.telefone || '',
             Observacao: item.Observacao || item.observacao || '',
             observacao: item.Observacao || item.observacao || '',
+            foto_url: item.foto_url || '',
             id: item.id,
             created_at: item.created_at
         }));
@@ -1027,9 +1048,42 @@ function renderPresidenciaView() {
                         cursor: pointer;
                         transition: all 0.3s ease;
                         box-shadow: 0 8px 30px rgba(96, 165, 250, 0.4);
-                        max-width: 300px;
+                        max-width: 380px;
                         width: 100%;
                     `;
+        
+        // Container para foto + informações
+        const contentWrapper = document.createElement('div');
+        contentWrapper.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-align: left;
+        `;
+        
+        // Foto da presidente
+        const presidenteFoto = document.createElement('img');
+        presidenteFoto.src = getFotoUrl(presidente);
+        presidenteFoto.alt = getNome(presidente);
+        presidenteFoto.style.cssText = `
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        `;
+        presidenteFoto.onerror = function() {
+            this.src = getFotoUrl({});
+        };
+        
+        // Container das informações
+        const infoWrapper = document.createElement('div');
+        infoWrapper.style.cssText = `
+            flex: 1;
+            min-width: 0;
+        `;
         
         const presidenteNome = document.createElement('h3');
     presidenteNome.textContent = getNome(presidente) || 'Presidente';
@@ -1056,9 +1110,13 @@ function renderPresidenciaView() {
             margin: 0;
         `;
         
-        presidenteCard.appendChild(presidenteNome);
-        presidenteCard.appendChild(presidenteCargo);
-        presidenteCard.appendChild(presidenteDept);
+        infoWrapper.appendChild(presidenteNome);
+        infoWrapper.appendChild(presidenteCargo);
+        infoWrapper.appendChild(presidenteDept);
+        
+        contentWrapper.appendChild(presidenteFoto);
+        contentWrapper.appendChild(infoWrapper);
+        presidenteCard.appendChild(contentWrapper);
         
         // Adicionar eventos de hover e clique
         presidenteCard.addEventListener('mouseenter', () => {
@@ -1150,18 +1208,40 @@ function renderPresidenciaView() {
             color: white;
             border-radius: 12px;
             padding: 15px;
-            text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-            height: 100%;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            min-height: 120px;
+            align-items: center;
+            gap: 12px;
             flex: 1;
-            min-width: 180px;
-            max-width: 200px;
+            min-width: 240px;
+            max-width: 280px;
+        `;
+        
+        // Foto do diretor
+        const diretorFoto = document.createElement('img');
+        diretorFoto.src = getFotoUrl(diretor);
+        diretorFoto.alt = getNome(diretor);
+        diretorFoto.style.cssText = `
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        `;
+        diretorFoto.onerror = function() {
+            this.src = getFotoUrl({});
+        };
+        
+        // Container de informações
+        const infoContainer = document.createElement('div');
+        infoContainer.style.cssText = `
+            flex: 1;
+            text-align: left;
+            min-width: 0;
         `;
         
         const diretorNome = document.createElement('h3');
@@ -1192,9 +1272,12 @@ function renderPresidenciaView() {
             line-height: 1.2;
         `;
         
-        diretorCard.appendChild(diretorNome);
-        diretorCard.appendChild(diretorCargo);
-        diretorCard.appendChild(diretorDept);
+        infoContainer.appendChild(diretorNome);
+        infoContainer.appendChild(diretorCargo);
+        infoContainer.appendChild(diretorDept);
+        
+        diretorCard.appendChild(diretorFoto);
+        diretorCard.appendChild(infoContainer);
         
         // Adicionar eventos de hover e clique
         diretorCard.addEventListener('mouseenter', () => {
@@ -2034,6 +2117,24 @@ function createColaboradorCard(colaborador, tipo) {
     
     card.style.cssText = cardStyles;
     
+    // Adicionar foto do colaborador
+    const fotoElement = document.createElement('img');
+    fotoElement.src = getFotoUrl(colaborador);
+    fotoElement.alt = nome;
+    fotoElement.style.cssText = `
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 12px auto;
+        display: block;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    `;
+    fotoElement.onerror = function() {
+        this.src = getFotoUrl({});
+    };
+    
     const nomeElement = document.createElement('h3');
     nomeElement.textContent = nome;
     nomeElement.style.cssText = nomeStyles;
@@ -2046,6 +2147,7 @@ function createColaboradorCard(colaborador, tipo) {
     deptElement.textContent = departamento;
     deptElement.style.cssText = deptStyles;
     
+    card.appendChild(fotoElement);
     card.appendChild(nomeElement);
     card.appendChild(cargoElement);
     card.appendChild(deptElement);
