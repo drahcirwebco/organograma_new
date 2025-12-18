@@ -1,6 +1,7 @@
 .env
 .env.local
 .env.*.local
+js/env.js
 node_modules/
 dist/
 build/

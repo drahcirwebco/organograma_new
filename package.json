@@ -6,6 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx http-server -p 3010 -o",
     "dev": "npx http-server -p 3010 -o -c-1",
+    "build": "node build-env.js",
     "create-user": "node create-user.js",
     "migrate-csv": "node migrate-csv-to-firestore.js",
     "remove-departamento": "node remove-departamento-field.js",
