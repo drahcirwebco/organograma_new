@@ -15,6 +15,75 @@ let navigationHistory = [];
 let dataLoaded = false;
 let currentRegimeFilter = 'Todos'; // Nova variável para armazenar o filtro de regime
 
+// ----------------- PERSISTÊNCIA DE ESTADO -----------------
+function saveNavigationState() {
+    if (currentSelectedPerson) {
+        const state = {
+            person: {
+                id: currentSelectedPerson.id,
+                Colaborador: getNome(currentSelectedPerson),
+                Cargo: getCargo(currentSelectedPerson),
+                'Área': getArea(currentSelectedPerson),
+                Gestor: getGestor(currentSelectedPerson)
+            },
+            level: currentHierarchyLevel,
+            filter: currentRegimeFilter,
+            history: navigationHistory
+        };
+        sessionStorage.setItem('navigationState', JSON.stringify(state));
+        console.log('💾 Estado de navegação salvo:', state);
+    }
+}
+
+function restoreNavigationState() {
+    const savedState = sessionStorage.getItem('navigationState');
+    if (savedState) {
+        try {
+            const state = JSON.parse(savedState);
+            console.log('🔄 Restaurando estado de navegação:', state);
+            
+            // Restaurar filtro
+            if (state.filter) {
+                currentRegimeFilter = state.filter;
+                const regimeSelect = document.getElementById('regime-select');
+                if (regimeSelect) regimeSelect.value = state.filter;
+            }
+            
+            // Restaurar histórico
+            if (state.history) {
+                navigationHistory = state.history;
+            }
+            
+            // Restaurar pessoa e nível
+            if (state.person && state.level) {
+                // Buscar a pessoa real nos dados carregados
+                const person = colaboradoresData.find(col => 
+                    getNome(col).toLowerCase() === state.person.Colaborador.toLowerCase()
+                );
+                
+                if (person) {
+                    currentSelectedPerson = person;
+                    currentHierarchyLevel = state.level;
+                    
+                    if (state.level === 'presidencia') {
+                        renderPresidenciaView();
+                    } else {
+                        renderSubordinadosView(person, state.level);
+                    }
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.error('❌ Erro ao restaurar estado:', e);
+        }
+    }
+    return false;
+}
+
+function clearNavigationState() {
+    sessionStorage.removeItem('navigationState');
+}
+
 // ----------------- HELPERS DE NORMALIZAÇÃO -----------------
 function getNome(col) {
     if (!col) return '';
@@ -148,9 +217,15 @@ async function loadSupabaseData() {
         dataLoaded = true;
         console.log(`✅ ${colaboradoresData.length} colaboradores carregados do Supabase!`);
         
-        // Renderizar view inicial
-        console.log('🎨 Renderizando Presidência View...');
-        renderPresidenciaView();
+        // Tentar restaurar estado de navegação anterior
+        const stateRestored = restoreNavigationState();
+        
+        // Se não restaurou estado, renderizar view inicial (presidência)
+        if (!stateRestored) {
+            console.log('🎨 Renderizando Presidência View...');
+            renderPresidenciaView();
+        }
+        
         console.log('✅ Renderização completa!');
         
     } catch (error) {
@@ -1269,6 +1344,9 @@ function navigateToNextLevel(person, currentLevel) {
     currentSelectedPerson = person;
     console.log('🎯 Estado atualizado - currentHierarchyLevel:', currentHierarchyLevel);
     
+    // Salvar estado de navegação
+    saveNavigationState();
+    
     // Renderizar próximo nível usando o nível já atualizado (nextLevel)
     renderHierarchyLevel(person, currentHierarchyLevel);
 }
@@ -2130,6 +2208,7 @@ function addBreadcrumb(container) {
 function goBack() {
     if (navigationHistory.length === 0) {
         // Se não há histórico, voltar para a presidência
+        clearNavigationState();
         loadInitialData();
         return;
     }
@@ -2137,6 +2216,7 @@ function goBack() {
     const previousLevel = navigationHistory.pop();
     if (!previousLevel || !previousLevel.person) {
         console.warn('⚠️ Nível anterior inválido ou sem pessoa. Recarregando raiz.');
+        clearNavigationState();
         loadInitialData();
         return;
     }
@@ -2147,14 +2227,19 @@ function goBack() {
 
     // Se voltamos para a presidência, renderizar visão raiz especial
     if (currentHierarchyLevel === 'presidencia' || currentHierarchyLevel === 'presidente') {
+        clearNavigationState();
         renderPresidenciaView();
         return;
     }
+
+    // Salvar estado atualizado
+    saveNavigationState();
 
     try {
         renderHierarchyLevel(currentSelectedPerson, currentHierarchyLevel);
     } catch (err) {
         console.error('❌ Erro ao renderizar nível anterior. Recarregando raiz.', err);
+        clearNavigationState();
         loadInitialData();
     }
 }
