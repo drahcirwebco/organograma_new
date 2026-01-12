@@ -6,6 +6,11 @@ const getEnvVariable = (name) => {
     return window.__ENV__[name];
   }
   
+  // Tentar carregar as variáveis do Vercel (NEXT_PUBLIC_VITE_*)
+  if (typeof window !== 'undefined' && window[`NEXT_PUBLIC_${name}`]) {
+    return window[`NEXT_PUBLIC_${name}`];
+  }
+  
   // Fallback: localStorage (para desenvolvimento local)
   if (typeof localStorage !== 'undefined') {
     const value = localStorage.getItem(name);
