@@ -1,7 +1,6 @@
 .env
 .env.local
 .env.*.local
-js/config-loader.js
 config.json
 node_modules/
 dist/
