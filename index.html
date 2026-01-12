@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Governança Corporativa - Organograma</title>
+    
+    <!-- Carregar variáveis de ambiente PRIMEIRO (sincronamente) -->
+    <script src="js/config-loader.js"></script>
+    
     <link rel="stylesheet" href="css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -49,17 +53,6 @@
     
     <!-- SheetJS para exportação XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    
-    <!-- Carregar config de ambiente (gerado no build) -->
-    <script>
-        fetch('config.json', { cache: 'no-store' })
-            .then(r => r.json())
-            .then(config => {
-                window.__ENV__ = config;
-                console.log('✓ Config carregado:', window.__ENV__);
-            })
-            .catch(e => console.warn('Config.json não disponível:', e));
-    </script>
     
     <!-- Scripts módulo (importa config, supabaseClient e app) -->
     <script type="module">
