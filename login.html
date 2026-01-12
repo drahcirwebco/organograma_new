@@ -6,6 +6,23 @@
     <title>Governança Corporativa - Organograma</title>
     
     <!-- Carregar variáveis de ambiente PRIMEIRO (sincronamente) -->
+    <script>
+        // Se config-loader.js não conseguir carregar, usar localStorage como fallback
+        if (!window.__ENV__ || !window.__ENV__.VITE_SUPABASE_URL) {
+            const stored = {
+                url: localStorage.getItem('VITE_SUPABASE_URL'),
+                key: localStorage.getItem('VITE_SUPABASE_KEY')
+            };
+            
+            if (stored.url && stored.key) {
+                window.__ENV__ = {
+                    VITE_SUPABASE_URL: stored.url,
+                    VITE_SUPABASE_KEY: stored.key
+                };
+                console.log('✓ Usando variáveis de localStorage');
+            }
+        }
+    </script>
     <script src="js/config-loader.js"></script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">

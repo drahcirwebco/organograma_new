@@ -1,5 +1,9 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "node build-env.js && npm run build",
   "outputDirectory": ".",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "env": {
+    "VITE_SUPABASE_URL": "@vite_supabase_url",
+    "VITE_SUPABASE_KEY": "@vite_supabase_key"
+  }
 }
