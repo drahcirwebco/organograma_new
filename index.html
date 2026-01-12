@@ -50,18 +50,18 @@
     <!-- SheetJS para exportação XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
+    <!-- Injetar variáveis de ambiente no navegador -->
+    <script>
+        // Valores são substituídos durante o build pela Vercel
+        window.__ENV__ = {
+            VITE_SUPABASE_URL: 'https://pyinmcinjcyelavkuhfl.supabase.co',
+            VITE_SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5aW5tY2luamN5ZWxhdmt1aGZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2ODA0NDIsImV4cCI6MjA2MzI1NjQ0Mn0.5UbxNTluLWoy56tBLL6tAAZZwLMj17uUDR8_nd9IMWA'
+        };
+        console.log('📦 Variáveis de ambiente carregadas:', window.__ENV__);
+    </script>
+    
     <!-- Variáveis de ambiente (gerado no build pela Vercel) -->
     <script src="js/env.js"></script>
-    
-    <!-- Fallback: injetar variáveis de ambiente para produção -->
-    <script>
-        if (!window.__ENV__) {
-            window.__ENV__ = {
-                VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || '',
-                VITE_SUPABASE_KEY: process.env.VITE_SUPABASE_KEY || ''
-            };
-        }
-    </script>
     
     <!-- Scripts módulo (importa config, supabaseClient e app) -->
     <script type="module">
