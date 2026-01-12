@@ -27,10 +27,20 @@ console.log('✅ Variáveis de ambiente geradas em js/env.js');
 
 // 2. Substituir placeholders no index.html
 const indexHtmlPath = path.join(__dirname, 'index.html');
-let htmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
+let indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
 
-htmlContent = htmlContent.replace('__VITE_SUPABASE_URL__', supabaseUrl);
-htmlContent = htmlContent.replace('__VITE_SUPABASE_KEY__', supabaseKey);
+indexHtmlContent = indexHtmlContent.replace('__VITE_SUPABASE_URL__', supabaseUrl);
+indexHtmlContent = indexHtmlContent.replace('__VITE_SUPABASE_KEY__', supabaseKey);
 
-fs.writeFileSync(indexHtmlPath, htmlContent);
+fs.writeFileSync(indexHtmlPath, indexHtmlContent);
 console.log('✅ Variáveis injetadas em index.html');
+
+// 3. Substituir placeholders no login.html
+const loginHtmlPath = path.join(__dirname, 'login.html');
+let loginHtmlContent = fs.readFileSync(loginHtmlPath, 'utf8');
+
+loginHtmlContent = loginHtmlContent.replace('__VITE_SUPABASE_URL__', supabaseUrl);
+loginHtmlContent = loginHtmlContent.replace('__VITE_SUPABASE_KEY__', supabaseKey);
+
+fs.writeFileSync(loginHtmlPath, loginHtmlContent);
+console.log('✅ Variáveis injetadas em login.html');
