@@ -1,17 +1,12 @@
 // config.js - Carrega as variáveis de ambiente
 
 const getEnvVariable = (name) => {
-  // Tentar carregar do window.__ENV__ (injetado pelo build)
+  // 1. Procurar em window.__ENV__ (injetado pelo env.js gerado no build)
   if (typeof window !== 'undefined' && window.__ENV__ && window.__ENV__[name]) {
     return window.__ENV__[name];
   }
   
-  // Tentar carregar as variáveis do Vercel (NEXT_PUBLIC_VITE_*)
-  if (typeof window !== 'undefined' && window[`NEXT_PUBLIC_${name}`]) {
-    return window[`NEXT_PUBLIC_${name}`];
-  }
-  
-  // Fallback: localStorage (para desenvolvimento local)
+  // 2. Fallback: localStorage (para desenvolvimento local)
   if (typeof localStorage !== 'undefined') {
     const value = localStorage.getItem(name);
     if (value && value !== 'undefined') return value;

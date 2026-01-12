@@ -50,8 +50,18 @@
     <!-- SheetJS para exportação XLSX -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
-    <!-- Variáveis de ambiente (gerado no build) -->
+    <!-- Variáveis de ambiente (gerado no build pela Vercel) -->
     <script src="js/env.js"></script>
+    
+    <!-- Fallback: injetar variáveis de ambiente para produção -->
+    <script>
+        if (!window.__ENV__) {
+            window.__ENV__ = {
+                VITE_SUPABASE_URL: process.env.VITE_SUPABASE_URL || '',
+                VITE_SUPABASE_KEY: process.env.VITE_SUPABASE_KEY || ''
+            };
+        }
+    </script>
     
     <!-- Scripts módulo (importa config, supabaseClient e app) -->
     <script type="module">
