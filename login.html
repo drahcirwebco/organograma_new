@@ -239,18 +239,16 @@
         </form>
     </main>
 
-    <!-- Injetar variáveis de ambiente no navegador -->
+    <!-- Carregar config de ambiente (gerado no build) -->
     <script>
-        // Valores são substituídos durante o build pela Vercel
-        window.__ENV__ = {
-            VITE_SUPABASE_URL: 'https://pyinmcinjcyelavkuhfl.supabase.co',
-            VITE_SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5aW5tY2luamN5ZWxhdmt1aGZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc2ODA0NDIsImV4cCI6MjA2MzI1NjQ0Mn0.5UbxNTluLWoy56tBLL6tAAZZwLMj17uUDR8_nd9IMWA'
-        };
-        console.log('📦 Variáveis de ambiente carregadas (login):', window.__ENV__);
+        fetch('config.json', { cache: 'no-store' })
+            .then(r => r.json())
+            .then(config => {
+                window.__ENV__ = config;
+                console.log('✓ Config carregado (login):', window.__ENV__);
+            })
+            .catch(e => console.warn('Config.json não disponível:', e));
     </script>
-
-    <!-- Variáveis de ambiente (gerado no build) -->
-    <script src="js/env.js"></script>
 
     <!-- Script de Login -->
     <script type="module" src="js/login.js"></script>
